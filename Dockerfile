@@ -20,7 +20,11 @@ RUN apt install --no-install-recommends --no-install-suggests -y \
     pkg-config \
     gengetopt \
     libtool \
-    automake
+    automake \
+    gcc \
+    g++ \
+    flex \
+    bison
 
 RUN apt install --no-install-recommends --no-install-suggests -y \
     apt-transport-https \
@@ -30,6 +34,19 @@ RUN apt install --no-install-recommends --no-install-suggests -y \
     gnupg1 \
     gtk-doc-tools \
     wget
+
+RUN cd /tmp && \
+    # wget https://sourceforge.net/projects/doxygen/files/rel-1.8.15/doxygen-1.8.15.src.tar.gz/download && \
+    # tar xvfz download && \
+    # cd doxygen-1.8.15 && \
+    git clone https://github.com/doxygen/doxygen.git && \
+    cd doxygen && \
+    git checkout tags/Release_1_8_15 && \
+    mkdir -v build && \
+    cd build && \
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .. && \
+    make && \
+    make install
 
 RUN apt install --no-install-recommends --no-install-suggests -y \
     python3 \
@@ -70,7 +87,7 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/meetecho/janus-gateway.git && \
     cd janus-gateway && \
-    git checkout tags/v0.10.3 && \
+    git checkout tags/v0.10.5 && \
     ./autogen.sh && \
     ./configure --prefix=/opt/janus --disable-boringssl && \
     make && make install && \
