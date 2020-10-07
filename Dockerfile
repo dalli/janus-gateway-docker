@@ -8,13 +8,14 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt install --no-install-recommends --no-install-suggests -y \
     libmicrohttpd-dev \
     libjansson-dev \
-    libssl-dev \
+    # libssl-dev \
     libsrtp-dev \
     libsofia-sip-ua-dev \
     libglib2.0-dev \ 
     libopus-dev \
     libogg-dev \
-    libcurl4-openssl-dev \
+    # libcurl4-openssl-dev \
+    libcurl4-gnutls-dev \
     liblua5.3-dev \
     libconfig-dev \
     pkg-config \
@@ -25,6 +26,7 @@ RUN apt install --no-install-recommends --no-install-suggests -y \
     g++ \
     flex \
     bison
+    
 
 RUN apt install --no-install-recommends --no-install-suggests -y \
     apt-transport-https \
@@ -33,7 +35,18 @@ RUN apt install --no-install-recommends --no-install-suggests -y \
     git \
     gnupg1 \
     gtk-doc-tools \
-    wget
+    wget \
+    apache2 \
+    # nanomsg \
+    nanomsg-utils \
+    libssl1.0-dev \
+    nodejs-dev \
+    node-gyp \
+    npm
+
+# apache configuration
+COPY ./apache2/apache2.conf /etc/apache2
+COPY ./apache2/000-default.conf /etc/apache2/sites-available
 
 RUN cd /tmp && \
     # wget https://sourceforge.net/projects/doxygen/files/rel-1.8.15/doxygen-1.8.15.src.tar.gz/download && \
@@ -46,7 +59,8 @@ RUN cd /tmp && \
     cd build && \
     cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .. && \
     make && \
-    make install
+    make install && \
+    rm -rf doxygen
 
 RUN apt install --no-install-recommends --no-install-suggests -y \
     python3 \
@@ -89,10 +103,17 @@ RUN cd /tmp && \
     cd janus-gateway && \
     git checkout tags/v0.10.5 && \
     ./autogen.sh && \
-    ./configure --prefix=/opt/janus --disable-boringssl && \
+    ./configure --prefix=/opt/janus --disable-boringssl --enable-all-js-modules && \
     make && make install && \
     make configs && \
     cd /tmp && \
     rm -rf janus-gateway
 
+COPY ./conf/*.cfg /opt/janus/etc/janus/
+
 WORKDIR /
+ADD startup.sh /
+
+EXPOSE 80 7088 8088 8188
+
+CMD ["/startup.sh"]
